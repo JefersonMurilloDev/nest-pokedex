@@ -1,0 +1,9 @@
+html, body {
+    padding: auto;
+    background-color: bisque;
+}
+
+h1 {
+    font-size: auto;
+    color: red;
+}

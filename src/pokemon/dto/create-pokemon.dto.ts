@@ -1,0 +1,16 @@
+import { IsInt, IsPositive, Min, IsString, MinLength } from 'class-validator';
+
+/* eslint-disable prettier/prettier */
+export class CreatePokemonDto {
+
+  @IsInt()
+  @IsPositive()
+  @Min(1)
+  no: number;
+
+  
+  @IsString()
+  @MinLength(1)
+  name: string;
+
+}

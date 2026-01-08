@@ -6,7 +6,16 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api/v2');
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true, // ← Esto convierte strings a numbers automáticamente
+      },
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }

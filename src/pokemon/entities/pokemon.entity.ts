@@ -8,7 +8,7 @@ export class Pokemon extends Document {
     @Prop({
     unique: true,
     index: true,
-    set: (value: string) => value.toLocaleLowerCase(),
+    set: (value: string) => value.toLowerCase(),
     })
     name: string;
 

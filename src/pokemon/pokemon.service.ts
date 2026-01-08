@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
@@ -13,6 +9,7 @@ import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Pokemon } from './entities/pokemon.entity';
 import { isValidObjectId, Model } from 'mongoose';
+import { paginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class PokemonService {
@@ -30,8 +27,14 @@ export class PokemonService {
     }
   }
 
-  findAll() {
-    return this.pokemonModel.find();
+  findAll(paginationDto: paginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    return this.pokemonModel
+      .find()
+      .limit(limit)
+      .skip(offset)
+      .sort({ no: 1 })
+      .select('-__v');
   }
 
   async findOne(term: string) {
@@ -50,7 +53,7 @@ export class PokemonService {
     // Buscamos un pokemon por su nombre en la base de datos.
     if (!pokemon) {
       pokemon = await this.pokemonModel.findOne({
-        name: term.toLocaleLowerCase(),
+        name: term.toLowerCase(),
       });
     }
 
@@ -63,10 +66,11 @@ export class PokemonService {
   async update(term: string, updatePokemonDto: UpdatePokemonDto) {
     const pokemon = await this.findOne(term);
     if (updatePokemonDto.name)
-        updatePokemonDto.name = updatePokemonDto.name.toLowerCase();
+      updatePokemonDto.name = updatePokemonDto.name.toLowerCase();
 
     try {
       await pokemon.updateOne(updatePokemonDto, { new: true });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return { ...pokemon.toJSON(), ...updatePokemonDto };
     } catch (error) {
       this.handleException(error);
@@ -76,23 +80,24 @@ export class PokemonService {
   async remove(id: string) {
     // const pokemon = await this.findOne(id)
     // await pokemon.deleteOne();
-    // return { id } 
+    // return { id }
     // const result = await this.pokemonModel.findByIdAndDelete(id);
-    const {deletedCount} = await this.pokemonModel.deleteOne({ _id: id });
-    if (deletedCount === 0) throw new BadRequestException(`Pokemon whit id "${id}" not found.`);
-    return "ok";
+    const { deletedCount } = await this.pokemonModel.deleteOne({ _id: id });
+    if (deletedCount === 0)
+      throw new BadRequestException(`Pokemon whit id "${id}" not found.`);
+    return 'ok';
   }
-
 
   private handleException(error: any) {
     if (error.code === 11000) {
-        throw new BadRequestException(
-          `Pokemon exists in db ${JSON.stringify(error.keyValue)} `,
-        );
-      }
-      console.log(error);
-      throw new InternalServerErrorException(
-        `Can't Create Pokemon - Check server Logs`,
+      throw new BadRequestException(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        `Pokemon exists in db ${JSON.stringify(error.keyValue)} `,
       );
+    }
+    console.log(error);
+    throw new InternalServerErrorException(
+      `Can't Create Pokemon - Check server Logs`,
+    );
   }
 }

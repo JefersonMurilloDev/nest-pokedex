@@ -1,23 +1,38 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
 import { PokeResponse } from './interfaces/poke-response.interface';
+import { Pokemon } from 'src/pokemon/entities/pokemon.entity';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { AxiosAdaptar } from 'src/common/adapters/axios.adapter';
 
 @Injectable()
 export class SeedService {
-  private readonly axios: AxiosInstance = axios;
+  constructor(
+    @InjectModel(Pokemon.name)
+    private readonly pokemonModel: Model<Pokemon>,
+    private readonly http: AxiosAdaptar,
+  ) {}
 
   async executeSeed() {
-    const { data } = await this.axios.get<PokeResponse>(
-      'https://pokeapi.co/api/v2/pokemon?limit=10',
+    // 1. Limpiar la BD antes de insertar
+    await this.pokemonModel.deleteMany({});
+
+    // 2. Obtener datos de la API
+    const data = await this.http.get<PokeResponse>(
+      'https://pokeapi.co/api/v2/pokemon?limit=650',
     );
 
-    data.results.forEach(({ name, url }) => {
+    // 3. Preparar datos para inserción masiva
+    const pokemonToInsert = data.results.map(({ name, url }) => {
       const segments = url.split('/');
       const no = +segments[segments.length - 2];
-      console.log(name, no);
+      return { name, no }; // ← Importante: retornar el objeto
     });
-    return data.results;
+
+    // 4. Insertar todos de una vez (más eficiente)
+    await this.pokemonModel.insertMany(pokemonToInsert);
+    return 'Seed executed successfully';
   }
 }

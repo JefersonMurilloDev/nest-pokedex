@@ -13,15 +13,24 @@ yarn install
 ```bash
 npm i -g @nestjs/cli
 ```
-4. Levantar la base de datos
+4. Clonar el archivo `.env.template` y renombrarlo a `.env`
+
+5. Configurar las variables de entorno en el archivo `.env`
+```
+MONGODB=mongodb://localhost:27017/nest-pokemon
+PORT=3000
+DEFAULT_LIMIT=7
+```
+
+6. Levantar la base de datos
 ```bash
 docker compose up -d
 ```
-5. Ejecutar la aplicación en desarrollo
+7. Ejecutar la aplicación en desarrollo
 ```bash
 yarn start:dev
 ```
-6. Reconstruir la base de datos con el seed
+8. Reconstruir la base de datos con el seed
 ```
 http://localhost:3000/api/v2/seed
 ```

@@ -1,6 +1,13 @@
 const API_URL = '/api/v2/pokemon?limit=50';
 const POKEAPI_BASE = 'https://pokeapi.co/api/v2/pokemon';
 
+// Lista curada de Pokemon que merecen tarjeta Retro/Epica
+const EPIC_POKEMONS = [
+  'pikachu', 'mewtwo', 'mew', 'charizard', 'dragonite',
+  'articuno', 'zapdos', 'moltres', 'lugia', 'ho-oh',
+  'rayquaza', 'lucario', 'gengar', 'arceus'
+];
+
 document.addEventListener('DOMContentLoaded', () => {
   fetchPokemons();
 });
@@ -10,7 +17,7 @@ async function fetchPokemons() {
   try {
     const response = await fetch(API_URL);
     const data = await response.json();
-    
+
     // data.results should contain the list of pokemon
     data.forEach(pokemon => {
       const card = createCard(pokemon);
@@ -25,8 +32,10 @@ async function fetchPokemons() {
 function createCard(pokemon) {
   // pokemon object structure from our API: { name: string, no: number }
   const card = document.createElement('div');
-  card.className = 'card';
-  
+  const isEpic = EPIC_POKEMONS.includes(pokemon.name.toLowerCase());
+
+  card.className = `card ${isEpic ? 'card-retro' : ''}`;
+
   // Construct image URL based on Pokemon Number "no"
   const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.no}.png`;
 
@@ -34,6 +43,7 @@ function createCard(pokemon) {
     <div class="card-inner">
       <div class="card-front">
         <span class="card-number">#${pokemon.no}</span>
+        <div class="circle-bg"></div>
         <img src="${imageUrl}" alt="${pokemon.name}" loading="lazy">
         <h2 class="card-name">${pokemon.name}</h2>
       </div>
@@ -56,7 +66,7 @@ async function flipCard(cardElement, pokemonName) {
   // If we are flipping to the back and haven't loaded details yet
   if (cardElement.classList.contains('is-flipped')) {
     const detailsContainer = cardElement.querySelector('.details-content');
-    
+
     // Check if we already loaded it (not having 'loading' class is a proxy, or check content)
     if (detailsContainer.classList.contains('loading')) {
       try {
@@ -79,7 +89,7 @@ async function fetchPokemonDetails(name) {
 
 function renderDetails(container, data) {
   // Extract types
-  const typesHtml = data.types.map(t => 
+  const typesHtml = data.types.map(t =>
     `<span class="type-badge">${t.type.name}</span>`
   ).join('');
 
